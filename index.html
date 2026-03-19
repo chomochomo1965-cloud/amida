@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（当選スタート赤残し版）</title>
+<title>🎯あみだくじ（リセットアニメ付き）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -55,6 +55,19 @@ function shuffle(array){
   return array;
 }
 
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// リセット時の数字アニメーション
+async function shuffleNumbersAnimation(btns, duration=500){
+  const start = Date.now();
+  while(Date.now() - start < duration){
+    for(let i=0;i<btns.length;i++){
+      btns[i].innerText = Math.floor(Math.random()*lineCount)+1;
+    }
+    await wait(80);
+  }
+}
+
 function generate(){
   svg.innerHTML="";
   goalBtns.forEach(b=>b.remove());
@@ -91,14 +104,13 @@ function generate(){
 
   // スタートボタン
   let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
-  numbers = shuffle(numbers);
   const colors = ["white","black","red","blue","yellow","green"];
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
-    btn.innerText = numbers[i];
-    btn.style.background = colors[numbers[i]-1];
-    btn.style.color = (numbers[i]===1 || numbers[i]===5) ? "black" : "white";
+    btn.innerText = "0"; // 一旦0で仮表示
+    btn.style.background = colors[i];
+    btn.style.color = "white";
     const colIndex = i;
     btn.style.left = (lineX[i]-25)+"px"; 
     btn.style.top = "0px";
@@ -113,35 +125,44 @@ function generate(){
     startBtns.push(btn);
   }
 
-  // ゴール結果
-  const hitIndex = Math.floor(Math.random()*lineCount); // 当選番号
-  const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
-  const offsetY = 180;
+  // リセット時アニメーション
+  (async()=>{
+    await shuffleNumbersAnimation(startBtns, 600);
+    numbers = shuffle(numbers);
+    for(let i=0;i<lineCount;i++){
+      startBtns[i].innerText = numbers[i];
+      startBtns[i].style.background = colors[numbers[i]-1];
+      startBtns[i].style.color = (numbers[i]===1 || numbers[i]===5) ? "black":"white";
+    }
 
-  for(let i=0;i<lineCount;i++){
-    const btn = document.createElement("div");
-    btn.className="goal-btn"; 
-    container.appendChild(btn); 
-    goalBtns.push(btn);
+    // ゴール結果
+    const hitIndex = Math.floor(Math.random()*lineCount);
+    const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
+    const offsetY = 180;
+    for(let i=0;i<lineCount;i++){
+      const btn = document.createElement("div");
+      btn.className="goal-btn"; 
+      container.appendChild(btn); 
+      goalBtns.push(btn);
 
-    goalResults.push(i===hitIndex?"当選":"✖");
+      goalResults.push(i===hitIndex?"当選":"✖");
 
-    const startBtn = startBtns[i];
-    const btnWidth = startBtn.offsetWidth;
-    const btnHeight = startBtn.offsetHeight;
-    btn.style.width = btnWidth + "px";
-    btn.style.height = btnHeight + "px";
-    btn.style.lineHeight = btnHeight + "px";
-    btn.style.fontSize = "18px";
+      const startBtn = startBtns[i];
+      const btnWidth = startBtn.offsetWidth;
+      const btnHeight = startBtn.offsetHeight;
+      btn.style.width = btnWidth + "px";
+      btn.style.height = btnHeight + "px";
+      btn.style.lineHeight = btnHeight + "px";
+      btn.style.fontSize = "18px";
 
-    btn.style.left = (lineX[i]-btnWidth/2)+"px";
-    btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
+      btn.style.left = (lineX[i]-btnWidth/2)+"px";
+      btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
 
-    // 初期状態は白背景・文字なし
-    btn.style.background = "#fff";
-    btn.style.color = "black";
-    btn.innerText = "";
-  }
+      btn.style.background = "#fff";
+      btn.style.color = "black";
+      btn.innerText = "";
+    }
+  })();
 }
 
 function addRandomBridge(){
@@ -178,16 +199,13 @@ async function start(pos,lineX, startBtn){
     y+=1;
   }
 
-  // ゴール到達後に表示を変更
   const resultBtn = goalBtns[pos];
   if(goalResults[pos] === "当選"){
     resultBtn.style.background = "red";
     resultBtn.style.color = "white";
     resultBtn.innerText = "当選";
-    // 当選スタートボタンも赤背景・白文字・数字保持
-    startBtn.style.background = "red";
+    startBtn.style.background = "gold";
     startBtn.style.color = "white";
-    // startBtn.innerText は数字のまま
   } else {
     resultBtn.style.background = "#fff";
     resultBtn.style.color = "black";
@@ -198,8 +216,6 @@ async function start(pos,lineX, startBtn){
 
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
 }
-
-function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 generate();
 </script>
