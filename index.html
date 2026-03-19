@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯 あみだくじ（数字・名前切替版）</title>
+<title>🎯 あみだくじ（名前・色固定版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -47,6 +47,7 @@ const margin = 50;
 let mode = 'number'; // デフォルトは数字
 const numbers = ["1","2","3","4","5","6"];
 const names = ["田中","内田","井上","谷井","大平","和田"];
+const colors = ["white","black","red","blue","yellow","green"]; // 1〜6の色固定対応
 
 function switchMode(newMode){
   mode = newMode;
@@ -63,7 +64,6 @@ function shuffle(array){
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-// リセット時アニメーション
 async function shuffleDisplayAnimation(btns, duration=600){
   const items = mode==='number'? numbers : names;
   const start = Date.now();
@@ -89,7 +89,6 @@ function generate(){
   lineHeight = svg.clientHeight - 50;
   const lineSpacing = (svgWidth - 2*margin)/(lineCount-1);
 
-  // 縦線
   for(let i=0;i<lineCount;i++){
     const x = margin + i*lineSpacing;
     lineX.push(x);
@@ -99,7 +98,6 @@ function generate(){
     svg.appendChild(line);
   }
 
-  // 横線ランダム
   for(let y=80;y<lineHeight;y+=50){
     const x = Math.floor(Math.random()*(lineCount-1));
     bridges.push({y,x});
@@ -110,13 +108,11 @@ function generate(){
     svg.appendChild(hLine);
   }
 
-  // スタートボタン
-  const colors = ["white","black","red","blue","yellow","green"];
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
-    btn.innerText = ""; // 仮表示
-    btn.style.background = colors[i];
+    btn.innerText = "";
+    btn.style.background = colors[i]; 
     btn.style.color = "white";
     const colIndex = i;
     btn.style.left = (lineX[i]-35)+"px"; 
@@ -132,7 +128,6 @@ function generate(){
     startBtns.push(btn);
   }
 
-  // アニメーション → 最終決定
   (async()=>{
     await shuffleDisplayAnimation(startBtns, 800);
     const items = mode==='number'? shuffle([...numbers]) : shuffle([...names]);
@@ -140,7 +135,6 @@ function generate(){
       startBtns[i].innerText = items[i];
     }
 
-    // ゴール結果
     const hitIndex = Math.floor(Math.random()*lineCount);
     const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
     const offsetY = 180;
@@ -183,7 +177,6 @@ function addRandomBridge(){
   svg.appendChild(hLine);
 }
 
-// ランナー移動
 async function start(pos,lineX, startBtn){
   if(runner) runner.remove();
   runner = document.createElement("div"); 
