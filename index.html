@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（到着後当選表示・赤固定版）</title>
+<title>🎯あみだくじ（当選番号保持版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -193,9 +193,11 @@ async function start(pos,lineX, startBtn){
   // 結果表示
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
 
-  // スタートボタンをグレー化（当選ゴールは隠れないように）
-  startBtn.style.background = "gray";
-  startBtn.innerText = "";
+  // スタートボタンのグレー化（当選番号は保持）
+  if(goalResults[pos] !== "当選"){
+    startBtn.style.background = "gray";
+    startBtn.innerText = "";
+  }
 }
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
