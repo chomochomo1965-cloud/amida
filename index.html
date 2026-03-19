@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（ランナー滑らか強化版）</title>
+<title>🎯あみだくじ（横移動1回・滑らか版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -29,7 +29,6 @@ button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; }
   <svg id="amida" width="100%" height="400"></svg>
 </div>
 
-<!-- ボタンを2行に分割 -->
 <div class="button-row">
   <div style="margin-bottom:10px;">
     <button class="reset-btn" onclick="generate()">🔄 リセット</button>
@@ -152,36 +151,30 @@ function addRandomBridge(){
   svg.appendChild(hLine);
 }
 
-// ランナー移動（横線確実に追従・滑らか強化）
+// ランナー移動（横線1回・縦移動継続）
 async function start(pos,lineX){
   if(runner) runner.remove();
   runner = document.createElement("div"); runner.className="runner"; runner.textContent="🐱";
   container.appendChild(runner);
   let y=50;
   while(y<=lineHeight){
-    runner.style.left=lineX[pos]+"px"; 
-    runner.style.top=y+"px";
-    await wait(6); // 縦移動を少し速める
-
     // 横線判定（±2px）
     for(const b of bridges){
       if(Math.abs(b.y - y) <= 2){
-        if(pos===b.x){
-          for(let i=lineX[pos]; i<=lineX[pos+1]; i+=1){ // 横移動も滑らか
-            runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(2);
-          } 
-          pos++;
-        } else if(pos===b.x+1){
-          for(let i=lineX[pos]; i>=lineX[pos-1]; i-=1){
-            runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(2);
-          } 
-          pos--;
-        }
+        if(pos===b.x) pos++;      // 右移動
+        else if(pos===b.x+1) pos--; // 左移動
       }
     }
+
+    // ランナー位置更新
+    runner.style.left=lineX[pos]+"px";
+    runner.style.top=y+"px";
+
+    await wait(6);
     y+=1; // 縦移動滑らか
   }
 
+  // ゴール到達後
   goalBtns[pos].innerText = goalResults[pos];
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
   if(goalResults[pos] === "当選"){
