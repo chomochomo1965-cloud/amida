@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（当選スタートゴールド版）</title>
+<title>🎯あみだくじ（当選スタート赤残し版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -184,10 +184,10 @@ async function start(pos,lineX, startBtn){
     resultBtn.style.background = "red";
     resultBtn.style.color = "white";
     resultBtn.innerText = "当選";
-    // 当選スタートボタンはゴールド背景・白文字・数字保持
-    startBtn.style.background = "gold";
+    // 当選スタートボタンも赤背景・白文字・数字保持
+    startBtn.style.background = "red";
     startBtn.style.color = "white";
-    // startBtn.innerText は数字そのまま
+    // startBtn.innerText は数字のまま
   } else {
     resultBtn.style.background = "#fff";
     resultBtn.style.color = "black";
