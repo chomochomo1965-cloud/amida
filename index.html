@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（ゴールサイズ連動版）</title>
+<title>🎯あみだくじ（当選赤背景版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -106,7 +106,7 @@ function generate(){
     startBtns.push(btn);
   }
 
-  // ゴール結果（1つだけ当たり）
+  // ゴール結果（1つだけ当選）
   const hitIndex = Math.floor(Math.random()*lineCount);
   const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
   const offsetY = 180;
@@ -130,6 +130,15 @@ function generate(){
 
     btn.style.left = (lineX[i]-btnWidth/2)+"px";
     btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
+
+    // 当選なら赤背景・文字白
+    if(i===hitIndex){
+      btn.style.background = "red";
+      btn.style.color = "white";
+    } else {
+      btn.style.background = "#fff";
+      btn.style.color = "black";
+    }
   }
 }
 
@@ -142,7 +151,8 @@ function addRandomBridge(){
   const hLine = document.createElementNS("http://www.w3.org/2000/svg","line");
   hLine.setAttribute("x1",lineX[xIndex]); hLine.setAttribute("y1",y);
   hLine.setAttribute("x2",lineX[xIndex+1]); hLine.setAttribute("y2",y);
-  hLine.setAttribute("stroke","black"); hLine.setAttribute("stroke-width",4);
+  hLine.setAttribute("stroke","black");
+  hLine.setAttribute("stroke-width",4);
   svg.appendChild(hLine);
 }
 
