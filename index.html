@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（横移動1回・滑らか版・色付き）</title>
+<title>🎯あみだくじ（横移動1回・滑らか版・色付き・グレー反映）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -100,7 +100,7 @@ function generate(){
 
     // 背景色と文字色
     btn.style.background = colors[numbers[i]-1];
-    btn.style.color = numbers[i]===1 ? "black" : "white"; // 白背景は黒文字
+    btn.style.color = (numbers[i]===1 || numbers[i]===5) ? "black" : "white";
 
     const colIndex = i;
     btn.style.left = (lineX[i]-25)+"px"; 
@@ -109,7 +109,7 @@ function generate(){
       if(!tried[colIndex]){
         tried[colIndex]=true;
         btn.disabled=true;
-        start(colIndex, lineX);
+        start(colIndex, lineX, btn);
       }
     };
     container.appendChild(btn);
@@ -159,31 +159,28 @@ function addRandomBridge(){
 }
 
 // ランナー移動（横線1回・縦移動継続）
-async function start(pos,lineX){
+async function start(pos,lineX, startBtn){
   if(runner) runner.remove();
   runner = document.createElement("div"); runner.className="runner"; runner.textContent="🐱";
   container.appendChild(runner);
   let y=50;
   while(y<=lineHeight){
-    // 横線判定（±2px）
     for(const b of bridges){
       if(Math.abs(b.y - y) <= 2){
-        if(pos===b.x) pos++;      // 右移動
-        else if(pos===b.x+1) pos--; // 左移動
+        if(pos===b.x) pos++;
+        else if(pos===b.x+1) pos--;
       }
     }
-
-    // ランナー位置更新
     runner.style.left=lineX[pos]+"px";
     runner.style.top=y+"px";
-
     await wait(6);
-    y+=1; // 縦移動滑らか
+    y+=1;
   }
 
   // ゴール到達後
   goalBtns[pos].innerText = goalResults[pos];
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
+
   if(goalResults[pos] === "当選"){
     goalBtns[pos].style.background = "red";
     goalBtns[pos].style.color = "white";
@@ -191,6 +188,10 @@ async function start(pos,lineX){
     goalBtns[pos].style.background = "#fff";
     goalBtns[pos].style.color = "black";
   }
+
+  // スタートボタンをグレーに
+  startBtn.style.background = "gray";
+  startBtn.style.color = "white";
 }
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
