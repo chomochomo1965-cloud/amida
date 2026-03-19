@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（到達時赤背景）</title>
+<title>🎯あみだくじ（到達時赤背景・ボタン2行）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -12,13 +12,14 @@ body{
   display:inline-block; position:relative; margin-top:20px; width:100%; max-width:500px;
 }
 button.start-btn, button.reset-btn{
-  cursor:pointer; border:2px solid black; border-radius:6px; background:#fffbe6;
+  cursor:pointer; border:2px solid black; border-radius:8px; background:#fffbe6;
 }
-button.start-btn{ width:40px; height:40px; font-size:16px; position:absolute; top:0; }
-button.reset-btn{ width:auto; padding:6px 12px; margin:5px; font-size:16px; }
+button.start-btn{ width:50px; height:50px; font-size:20px; position:absolute; top:0; }
+button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; }
 .runner{ position:absolute; font-size:50px; transform:translate(-50%,-50%); }
 .goal-btn{ position:absolute; text-align:center; border:2px solid black; border-radius:6px; background:#fff; cursor:default; }
-.result{ margin-top:20px; font-size:20px; }
+.result{ margin-top:20px; font-size:22px; font-weight:bold; }
+.button-row{ margin-top:20px; }
 </style>
 </head>
 <body>
@@ -28,9 +29,14 @@ button.reset-btn{ width:auto; padding:6px 12px; margin:5px; font-size:16px; }
   <svg id="amida" width="100%" height="400"></svg>
 </div>
 
-<div>
-  <button class="reset-btn" onclick="generate()">🔄 リセット</button>
-  <button class="reset-btn" onclick="addRandomBridge()">➕ 横線追加</button>
+<!-- ボタンを2行に分割 -->
+<div class="button-row">
+  <div style="margin-bottom:10px;">
+    <button class="reset-btn" onclick="generate()">🔄 リセット</button>
+  </div>
+  <div>
+    <button class="reset-btn" onclick="addRandomBridge()">➕ 横線追加</button>
+  </div>
 </div>
 
 <div id="result" class="result"></div>
@@ -94,7 +100,7 @@ function generate(){
     btn.className="start-btn"; 
     btn.innerText = numbers[i];
     const colIndex = i;
-    btn.style.left = (lineX[i]-20)+"px";
+    btn.style.left = (lineX[i]-25)+"px"; // サイズ50に合わせる
     btn.onclick = ()=>{ 
       if(!tried[colIndex]){
         tried[colIndex]=true;
@@ -119,19 +125,17 @@ function generate(){
     goalBtns.push(btn);
     goalResults.push(i===hitIndex?"当選":"✖");
 
-    // スタートボタンに合わせる
     const startBtn = startBtns[i];
     const btnWidth = startBtn.offsetWidth;
     const btnHeight = startBtn.offsetHeight;
     btn.style.width = btnWidth + "px";
     btn.style.height = btnHeight + "px";
     btn.style.lineHeight = btnHeight + "px";
-    btn.style.fontSize = "16px";
+    btn.style.fontSize = "18px";
 
     btn.style.left = (lineX[i]-btnWidth/2)+"px";
     btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
 
-    // 初期状態は白背景
     btn.style.background = "#fff";
     btn.style.color = "black";
   }
@@ -174,11 +178,8 @@ async function start(pos,lineX){
     y+=2;
   }
 
-  // ゴール到達時に結果表示
   goalBtns[pos].innerText = goalResults[pos];
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
-
-  // 当選なら色を変える
   if(goalResults[pos] === "当選"){
     goalBtns[pos].style.background = "red";
     goalBtns[pos].style.color = "white";
