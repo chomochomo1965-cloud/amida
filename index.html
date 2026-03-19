@@ -178,9 +178,12 @@ async function start(pos,lineX, startBtn){
   }
 
   // ゴール到達後
-  goalBtns[pos].innerText = goalResults[pos];
-  document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
-
+goalBtns[pos].innerText = goalResults[pos];
+document.getElementById("result").innerText = 
+    goalResults[pos] === "当選" 
+    ? `当選は ${pos + 1} 番です！🎯`   // 〇番を表示
+    : `結果：${goalResults[pos]}`;
+  
   if(goalResults[pos] === "当選"){
     goalBtns[pos].style.background = "red";
     goalBtns[pos].style.color = "white";
