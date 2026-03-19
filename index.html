@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（横移動1回・滑らか版）</title>
+<title>🎯あみだくじ（横移動1回・滑らか版・色付き）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -12,10 +12,10 @@ body{
   display:inline-block; position:relative; margin-top:20px; width:100%; max-width:500px;
 }
 button.start-btn, button.reset-btn{
-  cursor:pointer; border:2px solid black; border-radius:8px; background:#fffbe6;
+  cursor:pointer; border:2px solid black; border-radius:8px; 
 }
-button.start-btn{ width:50px; height:50px; font-size:20px; position:absolute; top:0; }
-button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; }
+button.start-btn{ width:50px; height:50px; font-size:20px; position:absolute; }
+button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; background:#fffbe6; }
 .runner{ position:absolute; font-size:50px; transform:translate(-50%,-50%); }
 .goal-btn{ position:absolute; text-align:center; border:2px solid black; border-radius:6px; background:#fff; cursor:default; }
 .result{ margin-top:20px; font-size:22px; font-weight:bold; }
@@ -92,12 +92,19 @@ function generate(){
   // スタートボタン
   let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
   numbers = shuffle(numbers);
+  const colors = ["white","black","red","blue","yellow","green"]; // 背景色
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
     btn.innerText = numbers[i];
+
+    // 背景色と文字色
+    btn.style.background = colors[numbers[i]-1];
+    btn.style.color = numbers[i]===1 ? "black" : "white"; // 白背景は黒文字
+
     const colIndex = i;
     btn.style.left = (lineX[i]-25)+"px"; 
+    btn.style.top = "0px";
     btn.onclick = ()=>{ 
       if(!tried[colIndex]){
         tried[colIndex]=true;
