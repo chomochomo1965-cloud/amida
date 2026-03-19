@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎯あみだくじ</title>
+<style>
+body{ text-align:center; font-family:sans-serif; background:#fffbe6; }
+#container{ display:inline-block; position:relative; margin-top:30px; }
+button.start-btn, button.reset-btn{
+  width:50px; height:50px; font-size:18px; cursor:pointer; border:2px solid black; border-radius:6px; background:#fffbe6;
+}
+button.reset-btn{ width:auto; padding:8px 16px; margin-left:10px; }
+.runner{ position:absolute; font-size:32px; transform:translate(-50%, -50%); }
+.goal-btn{ position:absolute; width:60px; height:40px; line-height:40px; text-align:center; font-size:18px; border:2px solid black; border-radius:6px; background:#fff; cursor:default; }
+.result{ margin-top:20px; font-size:24px; }
+</style>
+</head>
+<body>
+<h2>🎯 あみだくじ🎯</h2>
+
+<div id="container"><svg id="amida" width="500" height="400"></svg></div>
+<div style="margin-top:10px;">
+  <button class="reset-btn" onclick="generate()">🔄 リセット</button>
+  <button class="reset-btn" onclick="addRandomBridge()">➕ 横線追加</button>
+</div>
+<div id="result" class="result"></div>
+
+<script>
+const lineCount = 6;
+const svg = document.getElementById("amida");
+const container = document.getElementById("container");
+let bridges=[], runner, goalResults=[], goalBtns=[], startBtns=[], tried=[], lineX=[], lineHeight;
+
+const svgWidth = svg.getAttribute("width");
+lineHeight = svg.getAttribute("height") - 50;
+const margin = 50;
+const lineSpacing = (svgWidth - 2*margin)/(lineCount-1);
+
+// 配列シャッフル関数
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// リセット＆生成
+function generate(){
+  // 初期化
+  svg.innerHTML="";
+  goalBtns.forEach(b=>b.remove());
+  startBtns.forEach(b=>b.remove());
+  if(runner) runner.remove();
+  bridges=[]; goalResults=[]; goalBtns=[]; startBtns=[]; tried=new Array(lineCount).fill(false);
+  lineX=[]; 
+  document.getElementById("result").innerText="";
+
+  // 縦線生成
+  for(let i=0;i<lineCount;i++){
+    const x=margin+i*lineSpacing;
+    lineX.push(x);
+    const line=document.createElementNS("http://www.w3.org/2000/svg","line");
+    line.setAttribute("x1",x); line.setAttribute("y1",50); line.setAttribute("x2",x); line.setAttribute("y2",lineHeight);
+    line.setAttribute("stroke","black"); line.setAttribute("stroke-width",4);
+    svg.appendChild(line);
+  }
+
+  // 横線ランダム
+  for(let y=80;y<lineHeight;y+=50){
+    const x=Math.floor(Math.random()*(lineCount-1));
+    bridges.push({y,x});
+    const hLine=document.createElementNS("http://www.w3.org/2000/svg","line");
+    hLine.setAttribute("x1",lineX[x]); hLine.setAttribute("y1",y); hLine.setAttribute("x2",lineX[x+1]); hLine.setAttribute("y2",y);
+    hLine.setAttribute("stroke","black"); hLine.setAttribute("stroke-width",4);
+    svg.appendChild(hLine);
+  }
+
+  // ゴール結果（1つだけ当たり）
+  const hitIndex = Math.floor(Math.random()*lineCount);
+  const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
+  const offsetX=-30, offsetY=180;
+
+  for(let i=0;i<lineCount;i++){
+    const btn=document.createElement("div");
+    btn.className="goal-btn"; btn.innerText="";
+    container.appendChild(btn); goalBtns.push(btn);
+    goalResults.push(i===hitIndex ? "当たり":"✖");
+    btn.style.left=lineX[i]+offsetX+"px";
+    btn.style.top=(lineCenterY-btn.offsetHeight/2+offsetY)+"px";
+  }
+
+  // スタートボタン（数字シャッフル、ランナーは押した列から発進）
+  let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
+  numbers = shuffle(numbers); // ラベル用
+
+  for(let i=0;i<lineCount;i++){
+    const btn=document.createElement("button");
+    btn.className="start-btn"; 
+    btn.innerText=numbers[i];  // 表示ラベル
+    btn.style.position="absolute"; 
+    btn.style.left=(lineX[i]-25)+"px"; 
+    btn.style.top="0px";
+
+    const colIndex = i; // ランナーが発進する列番号
+    btn.onclick=()=>{ 
+      if(!tried[colIndex]){
+        tried[colIndex]=true;
+        btn.disabled=true;
+        start(colIndex, lineX);
+      }
+    };
+    container.appendChild(btn); 
+    startBtns.push(btn);
+  }
+}
+
+// 横線を1本ランダム追加
+function addRandomBridge(){
+  if(!lineX || lineX.length===0) return;
+  const xIndex = Math.floor(Math.random()*(lineCount-1));
+  const y = 50 + Math.floor(Math.random()*(lineHeight-100));
+  bridges.push({y, x:xIndex});
+
+  const hLine=document.createElementNS("http://www.w3.org/2000/svg","line");
+  hLine.setAttribute("x1",lineX[xIndex]);
+  hLine.setAttribute("y1",y);
+  hLine.setAttribute("x2",lineX[xIndex+1]);
+  hLine.setAttribute("y2",y);
+  hLine.setAttribute("stroke","black");
+  hLine.setAttribute("stroke-width",4);
+  svg.appendChild(hLine);
+}
+
+// ランナー移動
+async function start(pos,lineX){
+  if(runner) runner.remove();
+  runner=document.createElement("div"); runner.className="runner"; runner.textContent="🐱"; container.appendChild(runner);
+  let y=50;
+  while(y<=lineHeight){
+    runner.style.left=lineX[pos]+"px"; runner.style.top=y+"px"; 
+    await wait(8);
+    for(const b of bridges){
+      if(b.y===y){
+        if(pos===b.x){ 
+          for(let i=lineX[pos]; i<=lineX[pos+1]; i+=2){ runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(3); } 
+          pos++; 
+        }
+        else if(pos===b.x+1){ 
+          for(let i=lineX[pos]; i>=lineX[pos-1]; i-=2){ runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(3); } 
+          pos--; 
+        }
+      }
+    }
+    y+=2;
+  }
+  goalBtns[pos].innerText=goalResults[pos];
+  document.getElementById("result").innerText=`結果：${goalResults[pos]}`;
+}
+
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+generate();
+</script>
+</body>
+</html>
