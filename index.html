@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（当選赤背景版）</title>
+<title>🎯あみだくじ（到達時赤背景）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -131,14 +131,9 @@ function generate(){
     btn.style.left = (lineX[i]-btnWidth/2)+"px";
     btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
 
-    // 当選なら赤背景・文字白
-    if(i===hitIndex){
-      btn.style.background = "red";
-      btn.style.color = "white";
-    } else {
-      btn.style.background = "#fff";
-      btn.style.color = "black";
-    }
+    // 初期状態は白背景
+    btn.style.background = "#fff";
+    btn.style.color = "black";
   }
 }
 
@@ -178,8 +173,19 @@ async function start(pos,lineX){
     }
     y+=2;
   }
+
+  // ゴール到達時に結果表示
   goalBtns[pos].innerText = goalResults[pos];
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
+
+  // 当選なら色を変える
+  if(goalResults[pos] === "当選"){
+    goalBtns[pos].style.background = "red";
+    goalBtns[pos].style.color = "white";
+  } else {
+    goalBtns[pos].style.background = "#fff";
+    goalBtns[pos].style.color = "black";
+  }
 }
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
