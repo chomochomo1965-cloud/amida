@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯 あみだくじ（幅調整版）</title>
+<title>🎯 あみだくじ（シャッフル対応版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -52,24 +52,28 @@ const container = document.getElementById("container");
 let bridges=[], runner, goalResults=[], goalBtns=[], startBtns=[], tried=[], lineX=[], lineHeight;
 const margin = 50;
 let mode = 'number';
-const numbers = ["1","2","3","4","5","6"];
-const names = ["田中","内田","井上","谷井","大平","和田"];
-const colors = ["white","black","red","blue","yellow","green"];
 
-function switchMode(newMode){ mode = newMode; generate(); }
-function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
-function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
-async function shuffleDisplayAnimation(btns, duration=600){
-  const items = mode==='number'? numbers : names;
-  const start = Date.now();
-  while(Date.now() - start < duration){
-    for(let i=0;i<btns.length;i++){
-      const randIndex = Math.floor(Math.random() * items.length);
-      btns[i].innerText = items[randIndex];
-    }
-    await wait(80);
+// 固定対応配列
+const numbers = ["1","2","3","4","5","6"];
+const names   = ["田中","内田","井上","谷井","大平","和田"];
+const colors  = ["white","black","red","blue","yellow","green"];
+
+// 配列シャッフル用関数
+function shuffle(array){ 
+  const arr = [...array];
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+  return arr;
 }
+
+function switchMode(newMode){ 
+  mode = newMode; 
+  generate(); 
+}
+
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 function generate(){
   svg.innerHTML="";
@@ -84,15 +88,18 @@ function generate(){
   lineHeight = svg.clientHeight - 50;
   const lineSpacing = (svgWidth - 2*margin)/(lineCount-1);
 
+  // 縦線
   for(let i=0;i<lineCount;i++){
     const x = margin + i*lineSpacing;
     lineX.push(x);
     const line = document.createElementNS("http://www.w3.org/2000/svg","line");
-    line.setAttribute("x1",x); line.setAttribute("y1",50); line.setAttribute("x2",x); line.setAttribute("y2",lineHeight);
+    line.setAttribute("x1",x); line.setAttribute("y1",50);
+    line.setAttribute("x2",x); line.setAttribute("y2",lineHeight);
     line.setAttribute("stroke","black"); line.setAttribute("stroke-width",4);
     svg.appendChild(line);
   }
 
+  // 横線（ブリッジ）
   for(let y=80;y<lineHeight;y+=50){
     const x = Math.floor(Math.random()*(lineCount-1));
     bridges.push({y,x});
@@ -103,14 +110,17 @@ function generate(){
     svg.appendChild(hLine);
   }
 
+  // startボタン順をシャッフル（数字/名前の順序は対応色保持）
+  const indexOrder = shuffle([...Array(lineCount).keys()]); // 0〜5をランダム順に
   for(let i=0;i<lineCount;i++){
+    const idx = indexOrder[i]; // 元配列の番号
     const btn = document.createElement("button");
     btn.className="start-btn";
-    btn.innerText = "";
-    btn.style.background = colors[i];
-    btn.style.color = (colors[i]==="white"||colors[i]==="yellow")?"black":"white";
-    const colIndex = i;
-    btn.style.left = (lineX[i]-25)+"px"; // 幅50pxなので半分25px
+    btn.innerText = mode==='number'? numbers[idx] : names[idx];
+    btn.style.background = colors[idx];
+    btn.style.color = (colors[idx]==="white"||colors[idx]==="yellow")?"black":"white";
+    const colIndex = i; // ボタンの列位置
+    btn.style.left = (lineX[i]-25)+"px"; // 幅50px
     btn.style.top = "0px";
     btn.onclick = ()=>{
       if(!tried[colIndex]){
@@ -123,35 +133,29 @@ function generate(){
     startBtns.push(btn);
   }
 
-  (async()=>{
-    await shuffleDisplayAnimation(startBtns, 800);
-    const items = mode==='number'? shuffle([...numbers]) : shuffle([...names]);
-    for(let i=0;i<lineCount;i++){ startBtns[i].innerText = items[i]; }
-
-    const hitIndex = Math.floor(Math.random()*lineCount);
-    const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
-    const offsetY = 180;
-
-    for(let i=0;i<lineCount;i++){
-      const btn = document.createElement("div");
-      btn.className="goal-btn";
-      container.appendChild(btn);
-      goalBtns.push(btn);
-      goalResults.push(i===hitIndex?"当選":"✖");
-      const startBtn = startBtns[i];
-      const btnWidth = startBtn.offsetWidth;
-      const btnHeight = startBtn.offsetHeight;
-      btn.style.width = btnWidth + "px";
-      btn.style.height = btnHeight + "px";
-      btn.style.lineHeight = btnHeight + "px";
-      btn.style.fontSize = "16px";
-      btn.style.left = (lineX[i]-btnWidth/2)+"px";
-      btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
-      btn.style.background = "#fff";
-      btn.style.color = "black";
-      btn.innerText = "";
-    }
-  })();
+  // goalボタン生成
+  const hitIndex = Math.floor(Math.random()*lineCount); // 当選列もシャッフル
+  const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
+  const offsetY = 180;
+  for(let i=0;i<lineCount;i++){
+    const btn = document.createElement("div");
+    btn.className="goal-btn";
+    container.appendChild(btn);
+    goalBtns.push(btn);
+    goalResults.push(i===hitIndex?"当選":"✖");
+    const startBtn = startBtns[i];
+    const btnWidth = startBtn.offsetWidth;
+    const btnHeight = startBtn.offsetHeight;
+    btn.style.width = btnWidth + "px";
+    btn.style.height = btnHeight + "px";
+    btn.style.lineHeight = btnHeight + "px";
+    btn.style.fontSize = "16px";
+    btn.style.left = (lineX[i]-btnWidth/2)+"px";
+    btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
+    btn.style.background = "#fff";
+    btn.style.color = "black";
+    btn.innerText = "";
+  }
 }
 
 function addRandomBridge(){
