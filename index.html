@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（到達時赤背景・ボタン2行）</title>
+<title>🎯あみだくじ（ランナー滑らか強化版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -48,7 +48,6 @@ const container = document.getElementById("container");
 let bridges=[], runner, goalResults=[], goalBtns=[], startBtns=[], tried=[], lineX=[], lineHeight;
 const margin = 50;
 
-// 配列シャッフル
 function shuffle(array){
   for(let i=array.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -57,7 +56,6 @@ function shuffle(array){
   return array;
 }
 
-// リセット＆生成
 function generate(){
   svg.innerHTML="";
   goalBtns.forEach(b=>b.remove());
@@ -92,7 +90,7 @@ function generate(){
     svg.appendChild(hLine);
   }
 
-  // スタートボタン（数字シャッフル）
+  // スタートボタン
   let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
   numbers = shuffle(numbers);
   for(let i=0;i<lineCount;i++){
@@ -100,7 +98,7 @@ function generate(){
     btn.className="start-btn"; 
     btn.innerText = numbers[i];
     const colIndex = i;
-    btn.style.left = (lineX[i]-25)+"px"; // サイズ50に合わせる
+    btn.style.left = (lineX[i]-25)+"px"; 
     btn.onclick = ()=>{ 
       if(!tried[colIndex]){
         tried[colIndex]=true;
@@ -112,7 +110,7 @@ function generate(){
     startBtns.push(btn);
   }
 
-  // ゴール結果（1つだけ当選）
+  // ゴール結果
   const hitIndex = Math.floor(Math.random()*lineCount);
   const lineTop=50, lineBottom=lineHeight, lineCenterY=lineTop+(lineBottom-lineTop)/2;
   const offsetY = 180;
@@ -141,7 +139,6 @@ function generate(){
   }
 }
 
-// 横線1本ランダム追加
 function addRandomBridge(){
   if(!lineX || lineX.length===0) return;
   const xIndex = Math.floor(Math.random()*(lineCount-1));
@@ -155,27 +152,34 @@ function addRandomBridge(){
   svg.appendChild(hLine);
 }
 
-// ランナー移動
+// ランナー移動（横線確実に追従・滑らか強化）
 async function start(pos,lineX){
   if(runner) runner.remove();
   runner = document.createElement("div"); runner.className="runner"; runner.textContent="🐱";
   container.appendChild(runner);
   let y=50;
   while(y<=lineHeight){
-    runner.style.left=lineX[pos]+"px"; runner.style.top=y+"px";
-    await wait(8);
+    runner.style.left=lineX[pos]+"px"; 
+    runner.style.top=y+"px";
+    await wait(6); // 縦移動を少し速める
+
+    // 横線判定（±2px）
     for(const b of bridges){
-      if(b.y===y){
+      if(Math.abs(b.y - y) <= 2){
         if(pos===b.x){
-          for(let i=lineX[pos]; i<=lineX[pos+1]; i+=2){ runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(3); } 
+          for(let i=lineX[pos]; i<=lineX[pos+1]; i+=1){ // 横移動も滑らか
+            runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(2);
+          } 
           pos++;
         } else if(pos===b.x+1){
-          for(let i=lineX[pos]; i>=lineX[pos-1]; i-=2){ runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(3); } 
+          for(let i=lineX[pos]; i>=lineX[pos-1]; i-=1){
+            runner.style.left=i+"px"; runner.style.top=y+"px"; await wait(2);
+          } 
           pos--;
         }
       }
     }
-    y+=2;
+    y+=1; // 縦移動滑らか
   }
 
   goalBtns[pos].innerText = goalResults[pos];
