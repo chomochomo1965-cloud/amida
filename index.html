@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（横移動1回・滑らか版・色付き・グレー化）</title>
+<title>🎯あみだくじ（当選コメント固定・グレー化）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -20,6 +20,23 @@ button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; bac
 .goal-btn{ position:absolute; text-align:center; border:2px solid black; border-radius:6px; background:#fff; cursor:default; }
 .result{ margin-top:20px; font-size:22px; font-weight:bold; }
 .button-row{ margin-top:20px; }
+
+/* 当選コメント枠 */
+#winnerBox{
+  position:fixed;
+  top:20px;
+  right:20px;
+  width:200px;
+  min-height:50px;
+  border:2px solid black;
+  border-radius:8px;
+  background:#ffffcc;
+  padding:10px;
+  font-size:18px;
+  font-weight:bold;
+  color:#d10000;
+  z-index:100;
+}
 </style>
 </head>
 <body>
@@ -38,7 +55,8 @@ button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; bac
   </div>
 </div>
 
-<div id="result" class="result"></div>
+<!-- 当選コメント用の固定枠 -->
+<div id="winnerBox"></div>
 
 <script>
 const lineCount = 6;
@@ -62,7 +80,7 @@ function generate(){
   if(runner) runner.remove();
   bridges=[]; goalResults=[]; goalBtns=[]; startBtns=[]; tried=new Array(lineCount).fill(false);
   lineX=[];
-  document.getElementById("result").innerText="";
+  document.getElementById("winnerBox").innerText=""; // リセット時にコメント消去
 
   const svgWidth = svg.clientWidth;
   lineHeight = svg.clientHeight - 50;
@@ -97,8 +115,6 @@ function generate(){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
     btn.innerText = numbers[i];
-
-    // 背景色と文字色
     btn.style.background = colors[numbers[i]-1];
     btn.style.color = (numbers[i]===1 || numbers[i]===5) ? "black" : "white";
 
@@ -158,7 +174,7 @@ function addRandomBridge(){
   svg.appendChild(hLine);
 }
 
-// ランナー移動（横線1回・縦移動継続）
+// ランナー移動
 async function start(pos,lineX, startBtn){
   if(runner) runner.remove();
   runner = document.createElement("div"); runner.className="runner"; runner.textContent="🐱";
@@ -178,10 +194,11 @@ async function start(pos,lineX, startBtn){
   }
 
   // ゴール到達後
-  goalBtns[pos].innerText = goalResults[pos];
-  document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
-
+  const winnerBox = document.getElementById("winnerBox");
   if(goalResults[pos] === "当選"){
+    if(winnerBox.innerText === ""){
+      winnerBox.innerText = `当選は ${pos+1} 番です！🎯`;
+    }
     goalBtns[pos].style.background = "red";
     goalBtns[pos].style.color = "white";
   } else {
