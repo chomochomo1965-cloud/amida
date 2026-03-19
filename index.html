@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（当選番号保持版）</title>
+<title>🎯あみだくじ（当選スタートゴールド版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -92,7 +92,7 @@ function generate(){
   // スタートボタン
   let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
   numbers = shuffle(numbers);
-  const colors = ["white","black","red","blue","yellow","green"]; // 背景色
+  const colors = ["white","black","red","blue","yellow","green"];
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
@@ -157,7 +157,7 @@ function addRandomBridge(){
   svg.appendChild(hLine);
 }
 
-// ランナー移動（横線1回・縦移動継続）
+// ランナー移動
 async function start(pos,lineX, startBtn){
   if(runner) runner.remove();
   runner = document.createElement("div"); 
@@ -184,20 +184,19 @@ async function start(pos,lineX, startBtn){
     resultBtn.style.background = "red";
     resultBtn.style.color = "white";
     resultBtn.innerText = "当選";
+    // 当選スタートボタンはゴールド背景・白文字・数字保持
+    startBtn.style.background = "gold";
+    startBtn.style.color = "white";
+    // startBtn.innerText は数字そのまま
   } else {
     resultBtn.style.background = "#fff";
     resultBtn.style.color = "black";
     resultBtn.innerText = goalResults[pos];
-  }
-
-  // 結果表示
-  document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
-
-  // スタートボタンのグレー化（当選番号は保持）
-  if(goalResults[pos] !== "当選"){
     startBtn.style.background = "gray";
     startBtn.innerText = "";
   }
+
+  document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
 }
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
