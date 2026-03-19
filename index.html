@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（横移動1回・滑らか版・色付き・グレー反映）</title>
+<title>🎯あみだくじ（横移動1回・滑らか版・色付き・グレー化）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -177,9 +177,11 @@ async function start(pos,lineX, startBtn){
     y+=1;
   }
 
-// ゴール到達後
+  // ゴール到達後
+  goalBtns[pos].innerText = goalResults[pos];
+  document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
+
   if(goalResults[pos] === "当選"){
-    document.getElementById("result").innerText = `当選は ${pos+1} 番です！🎯`;
     goalBtns[pos].style.background = "red";
     goalBtns[pos].style.color = "white";
   } else {
