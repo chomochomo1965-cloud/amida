@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（リセットアニメ付き）</title>
+<title>🎯 あみだくじ（数字・名前切替版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -11,11 +11,11 @@ body{
 #container{
   display:inline-block; position:relative; margin-top:20px; width:100%; max-width:500px;
 }
-button.start-btn, button.reset-btn{
+button.start-btn, button.reset-btn, button.mode-btn{
   cursor:pointer; border:2px solid black; border-radius:8px; 
 }
-button.start-btn{ width:50px; height:50px; font-size:20px; position:absolute; z-index:5; }
-button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; background:#fffbe6; }
+button.start-btn{ width:70px; height:50px; font-size:16px; position:absolute; z-index:5; }
+button.reset-btn, button.mode-btn{ width:auto; padding:12px 18px; margin:5px; font-size:16px; background:#fffbe6; }
 .runner{ position:absolute; font-size:50px; transform:translate(-50%,-50%); z-index:10; }
 .goal-btn{ position:absolute; text-align:center; border:2px solid black; border-radius:6px; background:#fff; cursor:default; z-index:1; }
 .result{ margin-top:20px; font-size:22px; font-weight:bold; }
@@ -25,17 +25,15 @@ button.reset-btn{ width:auto; padding:12px 18px; margin:5px; font-size:18px; bac
 <body>
 <h2>🎯 あみだくじ 🎯</h2>
 
-<div id="container">
-  <svg id="amida" width="100%" height="400"></svg>
+<div class="button-row">
+  <button class="mode-btn" onclick="switchMode('number')">数字モード</button>
+  <button class="mode-btn" onclick="switchMode('name')">名前モード</button>
+  <button class="reset-btn" onclick="generate()">🔄 リセット</button>
+  <button class="reset-btn" onclick="addRandomBridge()">➕ 横線追加</button>
 </div>
 
-<div class="button-row">
-  <div style="margin-bottom:10px;">
-    <button class="reset-btn" onclick="generate()">🔄 リセット</button>
-  </div>
-  <div>
-    <button class="reset-btn" onclick="addRandomBridge()">➕ 横線追加</button>
-  </div>
+<div id="container">
+  <svg id="amida" width="100%" height="400"></svg>
 </div>
 
 <div id="result" class="result"></div>
@@ -46,6 +44,14 @@ const svg = document.getElementById("amida");
 const container = document.getElementById("container");
 let bridges=[], runner, goalResults=[], goalBtns=[], startBtns=[], tried=[], lineX=[], lineHeight;
 const margin = 50;
+let mode = 'number'; // デフォルトは数字
+const numbers = ["1","2","3","4","5","6"];
+const names = ["田中","内田","井上","谷井","大平","和田"];
+
+function switchMode(newMode){
+  mode = newMode;
+  generate();
+}
 
 function shuffle(array){
   for(let i=array.length-1;i>0;i--){
@@ -57,12 +63,14 @@ function shuffle(array){
 
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-// リセット時の数字アニメーション
-async function shuffleNumbersAnimation(btns, duration=500){
+// リセット時アニメーション
+async function shuffleDisplayAnimation(btns, duration=600){
+  const items = mode==='number'? numbers : names;
   const start = Date.now();
   while(Date.now() - start < duration){
     for(let i=0;i<btns.length;i++){
-      btns[i].innerText = Math.floor(Math.random()*lineCount)+1;
+      const randIndex = Math.floor(Math.random() * items.length);
+      btns[i].innerText = items[randIndex];
     }
     await wait(80);
   }
@@ -103,16 +111,15 @@ function generate(){
   }
 
   // スタートボタン
-  let numbers = Array.from({length: lineCount}, (_,i)=>i+1);
   const colors = ["white","black","red","blue","yellow","green"];
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("button");
     btn.className="start-btn"; 
-    btn.innerText = "0"; // 一旦0で仮表示
+    btn.innerText = ""; // 仮表示
     btn.style.background = colors[i];
     btn.style.color = "white";
     const colIndex = i;
-    btn.style.left = (lineX[i]-25)+"px"; 
+    btn.style.left = (lineX[i]-35)+"px"; 
     btn.style.top = "0px";
     btn.onclick = ()=>{ 
       if(!tried[colIndex]){
@@ -125,14 +132,12 @@ function generate(){
     startBtns.push(btn);
   }
 
-  // リセット時アニメーション
+  // アニメーション → 最終決定
   (async()=>{
-    await shuffleNumbersAnimation(startBtns, 600);
-    numbers = shuffle(numbers);
+    await shuffleDisplayAnimation(startBtns, 800);
+    const items = mode==='number'? shuffle([...numbers]) : shuffle([...names]);
     for(let i=0;i<lineCount;i++){
-      startBtns[i].innerText = numbers[i];
-      startBtns[i].style.background = colors[numbers[i]-1];
-      startBtns[i].style.color = (numbers[i]===1 || numbers[i]===5) ? "black":"white";
+      startBtns[i].innerText = items[i];
     }
 
     // ゴール結果
@@ -153,7 +158,7 @@ function generate(){
       btn.style.width = btnWidth + "px";
       btn.style.height = btnHeight + "px";
       btn.style.lineHeight = btnHeight + "px";
-      btn.style.fontSize = "18px";
+      btn.style.fontSize = "16px";
 
       btn.style.left = (lineX[i]-btnWidth/2)+"px";
       btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
