@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>🎯あみだくじ（横移動1回・滑らか版・色付き・グレー化・当選赤固定）</title>
+<title>🎯あみだくじ（当選赤固定・文字表示版）</title>
 <style>
 body{
   text-align:center; font-family:sans-serif; background:#fffbe6; margin:0; padding:20px;
@@ -98,7 +98,6 @@ function generate(){
     btn.className="start-btn"; 
     btn.innerText = numbers[i];
 
-    // 背景色と文字色
     btn.style.background = colors[numbers[i]-1];
     btn.style.color = (numbers[i]===1 || numbers[i]===5) ? "black" : "white";
 
@@ -124,11 +123,9 @@ function generate(){
   for(let i=0;i<lineCount;i++){
     const btn = document.createElement("div");
     btn.className="goal-btn"; 
-    btn.innerText="";
     container.appendChild(btn); 
     goalBtns.push(btn);
 
-    // 当選・はずれ判定
     goalResults.push(i===hitIndex?"当選":"✖");
 
     const startBtn = startBtns[i];
@@ -142,13 +139,15 @@ function generate(){
     btn.style.left = (lineX[i]-btnWidth/2)+"px";
     btn.style.top = (lineCenterY - btnHeight/2 + offsetY)+"px";
 
-    // 当選なら赤背景・白文字に固定
+    // 当選なら赤背景・白文字、文字も「当選」
     if(i === hitIndex){
       btn.style.background = "red";
       btn.style.color = "white";
+      btn.innerText = "当選";
     } else {
       btn.style.background = "#fff";
       btn.style.color = "black";
+      btn.innerText = "";
     }
   }
 }
@@ -185,12 +184,12 @@ async function start(pos,lineX, startBtn){
     y+=1;
   }
 
-  // ゴール到達後
-  goalBtns[pos].innerText = goalResults[pos];
+  // ゴール到達後の結果表示
   document.getElementById("result").innerText = `結果：${goalResults[pos]}`;
 
-  // 当選ボタンはすでに赤固定なので、それ以外は色を設定
+  // 当選ボタンはすでに赤固定なので、それ以外のゴールボタンは必要に応じて色変更
   if(goalResults[pos] !== "当選"){
+    goalBtns[pos].innerText = goalResults[pos];
     goalBtns[pos].style.background = "#fff";
     goalBtns[pos].style.color = "black";
   }
